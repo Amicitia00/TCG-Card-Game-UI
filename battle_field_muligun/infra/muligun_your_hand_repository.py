@@ -16,6 +16,11 @@ class MuligunYourHandRepository:
     is_opponent_mulligan_done = False
     is_my_mulligan_done = False
     is_doing_mulligan = True
+
+    is_reshape_not_complete = True
+    timer_visible = True
+    ok_button_visible = True
+
     def __new__(cls):
         if cls.__instance is None:
             cls.__instance = super().__new__(cls)
@@ -188,6 +193,30 @@ class MuligunYourHandRepository:
 
     def get_is_my_mulligan(self):
         return self.is_my_mulligan_done
+
+    def set_is_doing_mulligan(self, is_doing_mulligan):
+        self.is_doing_mulligan = is_doing_mulligan
+
+    def get_is_doing_mulligan(self):
+        return self.is_doing_mulligan
+
+    def set_is_reshape_not_complete(self, is_reshape_not_complete):
+        self.is_reshape_not_complete = is_reshape_not_complete
+
+    def get_is_reshape_not_complete(self):
+        return self.is_reshape_not_complete
+
+    def set_timer_visible(self, timer_visible):
+        self.timer_visible = timer_visible
+
+    def get_timer_visible(self):
+        return self.timer_visible
+
+    def set_ok_button_visible(self, ok_button_visible):
+        self.ok_button_visible = ok_button_visible
+
+    def get_ok_button_visible(self):
+        return self.ok_button_visible
 
     def saveTransmitIpcChannel(self, transmitIpcChannel):
         print("BattleFieldMeligunFrameRepositoryImpl: saveTransmitIpcChannel()")

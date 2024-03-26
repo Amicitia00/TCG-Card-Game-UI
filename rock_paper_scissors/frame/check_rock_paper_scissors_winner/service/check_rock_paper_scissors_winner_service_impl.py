@@ -8,7 +8,7 @@ from rock_paper_scissors.frame.check_rock_paper_scissors_winner.service.check_ro
 from rock_paper_scissors.repository.rock_paper_scissors_repository_impl import RockPaperScissorsRepositoryImpl
 from session.repository.session_repository_impl import SessionRepositoryImpl
 from notify_reader.repository.notify_reader_repository_impl import NotifyReaderRepositoryImpl
-from battle_field_muligun.frame.battle_field_muligun_frame import BattleFieldMuligunFrame
+from battle_field_muligun.infra.muligun_your_hand_repository import MuligunYourHandRepository
 
 
 class CheckRockPaperScissorsWinnerServiceImpl(CheckRockPaperScissorsWinnerService):
@@ -22,6 +22,7 @@ class CheckRockPaperScissorsWinnerServiceImpl(CheckRockPaperScissorsWinnerServic
             cls.__instance.__sessionRepositoryImpl = SessionRepositoryImpl.getInstance()
             cls.__instance.__notifyReaderRepositoryImpl = NotifyReaderRepositoryImpl.getInstance()
             cls.__instance.__rockPaperScissorRepositoryImpl = RockPaperScissorsRepositoryImpl.getInstance()
+            cls.__instance.__muligun_your_hand_repository = MuligunYourHandRepository.getInstance()
         return cls.__instance
 
     @classmethod
@@ -59,6 +60,11 @@ class CheckRockPaperScissorsWinnerServiceImpl(CheckRockPaperScissorsWinnerServic
                 # self.__notifyReaderRepositoryImpl.set_is_your_turn_for_check_fake_process(self.setWinnerToNotify())
                 checkRockPaperScissorsWinnerFrame.update()
                 time.sleep(5)
+                self.newGameResetMuligun()
+                # try:
+                #
+                # except Exception as e:
+                #     print("None값으로 인해 에러 발생(초기값 None)")
                 switchFrameWithMenuName('battle-field-muligun')
                 self.__rockPaperScissorRepositoryImpl.resetRPS()
                 self.check_RPS_label.configure(text="상대방의 선택을 기다리는중")
@@ -66,6 +72,26 @@ class CheckRockPaperScissorsWinnerServiceImpl(CheckRockPaperScissorsWinnerServic
                 break
 
             checkRockPaperScissorsWinnerFrame.update()
+
+    def newGameResetMuligun(self):
+        self.__muligun_your_hand_repository.set_is_doing_mulligan(True)
+        self.__muligun_your_hand_repository.set_timer_visible(True)
+        self.__muligun_your_hand_repository.set_ok_button_visible(True)
+
+        # self.muligun_your_hand_repository.set_is_doing_mulligan = True
+        # self.muligun_your_hand_repository.set_is_reshape_not_complete = False
+        # #self.timer.set_function(self.muligunTimeOut)
+        # self.timer.set_timer(30)
+        # self.timer.start_timer()
+        # self.timer_visible = True
+        #
+        # self.click_card_effect_rectangle = None
+        # self.selected_object = None
+        # self.prev_selected_object = None
+        # self.execute_pick_card_effect = True
+        # self.ok_button_visible = True
+        # self.ok_button_clicked = False
+
 
     def findWinner(self):
         RPSWinner_mapping = {

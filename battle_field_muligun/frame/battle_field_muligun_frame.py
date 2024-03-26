@@ -43,7 +43,7 @@ class BattleFieldMuligunFrame(OpenGLFrame):
         self.width = target_monitor.width
         self.height = target_monitor.height
 
-        self.is_reshape_not_complete = True
+        #self.is_reshape_not_complete = True
 
         self.current_width = self.width
         self.current_height = self.height
@@ -97,7 +97,7 @@ class BattleFieldMuligunFrame(OpenGLFrame):
         self.timer_panel = None
         self.timer = BattleFieldMuligunTimer()
 
-        self.is_doing_mulligan = True
+        #self.is_doing_mulligan = True
 
     def initgl(self):
         glClearColor(1.0, 1.0, 1.0, 0.0)
@@ -115,7 +115,6 @@ class BattleFieldMuligunFrame(OpenGLFrame):
 
         self.prev_width = self.width
         self.prev_height = self.height
-        self.is_reshape_not_complete = False
 
         self.timer.set_total_window_size(self.width, self.height)
         self.timer.draw_current_timer_panel()
@@ -128,10 +127,13 @@ class BattleFieldMuligunFrame(OpenGLFrame):
         # self.hand_card_state = self.muligun_your_hand_repository.get_current_hand_state()
         self.muligun_your_hand_repository.create_hand_card_list()
 
+        self.muligun_your_hand_repository.set_is_reshape_not_complete(False)
+        print(f"get_is_reshape_not_complete{self.muligun_your_hand_repository.get_is_reshape_not_complete}")
+
     def reshape(self, width, height):
         print(f"Reshaping window to width={width}, height={height}")
 
-        if self.is_reshape_not_complete:
+        if self.muligun_your_hand_repository.get_is_reshape_not_complete() is True:
             self.init_first_window(width, height)
 
         self.current_width = width
@@ -166,10 +168,10 @@ class BattleFieldMuligunFrame(OpenGLFrame):
             battle_field_muligun_background_shape.draw()
 
     def redraw(self):
-        if self.is_doing_mulligan == False:
+        if self.muligun_your_hand_repository.get_is_doing_mulligan() is False:
             return
         # print("redrawing")
-        if self.is_reshape_not_complete:
+        if self.muligun_your_hand_repository.get_is_reshape_not_complete() is True:
             return
 
         self.tkMakeCurrent()
@@ -190,9 +192,9 @@ class BattleFieldMuligunFrame(OpenGLFrame):
                 self.timer.stop_timer()
                 print("사용자 둘 다 멀리건 선택 완료")
                 # TODO: 배틀 필드 화면으로 넘어가야 함.
-                self.timer_visible = False
+                self.muligun_your_hand_repository.set_timer_visible(False)
                 # self.master.after(self.__switchFrameWithMenuName('battle-field'))
-                self.is_doing_mulligan = False
+                self.muligun_your_hand_repository.set_is_doing_mulligan(False)
 
 
                 self.__switchFrameWithMenuName('battle-field')
@@ -220,10 +222,10 @@ class BattleFieldMuligunFrame(OpenGLFrame):
                 self.message_visible = True
                 #TODO: 시간 초가 종료 되었을 때 상대가 선택하지 않으면 배틀 필드 화면으로 넘어감.
 
-        if self.ok_button_visible is True:
+        if self.muligun_your_hand_repository.get_ok_button_visible() is True:
             self.ok_button.draw()
 
-        if self.timer_visible is True:
+        if self.muligun_your_hand_repository.get_timer_visible() is True:
             self.draw_muligun_timer()
 
 
@@ -418,7 +420,7 @@ class BattleFieldMuligunFrame(OpenGLFrame):
             # 그려져 있는 카드 선택 효과, 그려져 있는 버튼은 지워야 함.
             self.click_card_effect_rectangles = []
             self.checking_draw_effect = {}
-            self.ok_button_visible = False
+            self.muligun_your_hand_repository.set_ok_button_visible(False)
             self.execute_pick_card_effect = False
             self.ok_button_clicked = True
 
@@ -567,7 +569,7 @@ class BattleFieldMuligunFrame(OpenGLFrame):
     #     return self.hand_card_list
 
     def draw_muligun_timer(self):
-        if self.is_doing_mulligan == True:
+        if self.muligun_your_hand_repository.get_is_doing_mulligan() is True:
             self.timer.set_width_ratio(self.width_ratio)
             self.timer.set_height_ratio(self.height_ratio)
             self.timer.update_current_timer_panel()
@@ -593,13 +595,13 @@ class BattleFieldMuligunFrame(OpenGLFrame):
 
             self.your_deck_repository.save_deck_state(deck_card_list)
 
-            self.is_doing_mulligan = False
+            self.muligun_your_hand_repository.set_is_doing_mulligan(False)
             self.__switchFrameWithMenuName('battle-field')
 
         # 나는 멀리건을 선택하고 상대가 선택하지 않았을 경우
         else:
             if not self.muligun_your_hand_repository.get_is_opponent_mulligan():
                 self.message_visible = False
-                self.is_doing_mulligan = False
+                self.muligun_your_hand_repository.set_is_doing_mulligan(False)
                 self.__switchFrameWithMenuName('battle-field')
         # self.master.after(self.__switchFrameWithMenuName('battle-field'))
