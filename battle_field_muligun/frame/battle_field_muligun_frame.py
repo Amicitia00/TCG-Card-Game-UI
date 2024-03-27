@@ -11,6 +11,7 @@ from battle_field.infra.your_deck_repository import YourDeckRepository
 from battle_field.infra.your_field_energy_repository import YourFieldEnergyRepository
 from battle_field.infra.your_hand_repository import YourHandRepository
 from battle_field_muligun.infra.muligun_your_hand_repository import MuligunYourHandRepository
+from battle_field_muligun.infra.muligun_frame_repository import MuligunFrameRepository
 from battle_field_muligun.entity.scene.battle_field_muligun_scene import BattleFieldMuligunScene
 from battle_field_muligun.service.request.check_opponent_muligun_request import CheckOpponentMuligunRequest
 from battle_field_muligun.service.request.muligun_request import MuligunRequest
@@ -76,6 +77,7 @@ class BattleFieldMuligunFrame(OpenGLFrame):
         self.ok_button = self.create_ok_button()
 
         self.muligun_your_hand_repository = MuligunYourHandRepository.getInstance()
+        #self.muligun_frame_repository = MuligunFrameRepository.getInstance()
         # print(f"your_hand_repo: {self.your_hand_repository.get_current_hand_state()}")
         # self.your_hand_repository.save_current_hand_state([6, 8, 19, 20, 151])
         print("Call Muligun Frame Constructor")
@@ -243,7 +245,7 @@ class BattleFieldMuligunFrame(OpenGLFrame):
             for attached_shape in attached_shape_list:
                 attached_shape.draw()
 
-        if self.execute_pick_card_effect is True:
+        if self.muligun_your_hand_repository.get_execute_pick_card_effect() is True:
             self.draw_pick_card_effect()
 
         if self.muligun_your_hand_repository.get_is_opponent_mulligan() is False:
@@ -365,7 +367,7 @@ class BattleFieldMuligunFrame(OpenGLFrame):
             print(f"Exception in on_canvas_click: {e}")
 
     def on_canvas_ok_button_click(self, event):
-        if not self.ok_button_clicked:
+        if not self.muligun_your_hand_repository.get_ok_button_clicked():
             # self.your_hand_repository.select_card_id_list(self.change_card_object_list)# 서버에 보내줄 카드 아이디 리스트로 저장.
             # print(f"your_hand select_card: {self.change_card_object_list}")
             print("on_canvas_ok_button_click()")
@@ -421,8 +423,8 @@ class BattleFieldMuligunFrame(OpenGLFrame):
             self.click_card_effect_rectangles = []
             self.checking_draw_effect = {}
             self.muligun_your_hand_repository.set_ok_button_visible(False)
-            self.execute_pick_card_effect = False
-            self.ok_button_clicked = True
+            self.muligun_your_hand_repository.set_execute_pick_card_effect(False)
+            self.muligun_your_hand_repository.set_ok_button_clicked(True)
 
             self.muligun_your_hand_repository.set_is_my_mulligan(True)
             current_hand_state = self.muligun_your_hand_repository.get_current_hand_state()

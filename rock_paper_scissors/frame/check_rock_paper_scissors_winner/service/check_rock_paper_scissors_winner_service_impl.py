@@ -9,6 +9,7 @@ from rock_paper_scissors.repository.rock_paper_scissors_repository_impl import R
 from session.repository.session_repository_impl import SessionRepositoryImpl
 from notify_reader.repository.notify_reader_repository_impl import NotifyReaderRepositoryImpl
 from battle_field_muligun.infra.muligun_your_hand_repository import MuligunYourHandRepository
+from battle_field_muligun_timer.battle_field_muligun_timer import BattleFieldMuligunTimer
 
 
 class CheckRockPaperScissorsWinnerServiceImpl(CheckRockPaperScissorsWinnerService):
@@ -74,9 +75,15 @@ class CheckRockPaperScissorsWinnerServiceImpl(CheckRockPaperScissorsWinnerServic
             checkRockPaperScissorsWinnerFrame.update()
 
     def newGameResetMuligun(self):
+        timer = BattleFieldMuligunTimer()
         self.__muligun_your_hand_repository.set_is_doing_mulligan(True)
         self.__muligun_your_hand_repository.set_timer_visible(True)
         self.__muligun_your_hand_repository.set_ok_button_visible(True)
+        self.__muligun_your_hand_repository.set_ok_button_clicked(False)
+        self.__muligun_your_hand_repository.set_execute_pick_card_effect(True)
+        self.__muligun_your_hand_repository.set_is_my_mulligan(False)
+        self.__muligun_your_hand_repository.set_is_opponent_mulligan(False)
+        timer.set_timer(30)
 
         # self.muligun_your_hand_repository.set_is_doing_mulligan = True
         # self.muligun_your_hand_repository.set_is_reshape_not_complete = False

@@ -20,6 +20,8 @@ class MuligunYourHandRepository:
     is_reshape_not_complete = True
     timer_visible = True
     ok_button_visible = True
+    ok_button_clicked = False
+    execute_pick_card_effect = True
 
     def __new__(cls):
         if cls.__instance is None:
@@ -217,6 +219,18 @@ class MuligunYourHandRepository:
 
     def get_ok_button_visible(self):
         return self.ok_button_visible
+
+    def set_ok_button_clicked(self, ok_button_clicked):
+        self.ok_button_clicked = ok_button_clicked
+
+    def get_ok_button_clicked(self):
+        return self.ok_button_clicked
+
+    def set_execute_pick_card_effect(self, execute_pick_card_effect):
+        self.execute_pick_card_effect = execute_pick_card_effect
+
+    def get_execute_pick_card_effect(self):
+        return self.execute_pick_card_effect
 
     def saveTransmitIpcChannel(self, transmitIpcChannel):
         print("BattleFieldMeligunFrameRepositoryImpl: saveTransmitIpcChannel()")
