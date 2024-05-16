@@ -398,6 +398,7 @@ class BattleFieldFrame(OpenGLFrame):
         self.is_effect_animation_playing = False
 
         self.battle_field_repository = BattleFieldRepository.getInstance()
+        self.battle_field_repository.save_master(self.master)
         self.battle_result = BattleResult()
         self.battle_result_panel_list = []
 
@@ -1645,42 +1646,45 @@ class BattleFieldFrame(OpenGLFrame):
         if self.field_area_inside_handler.get_field_area_action() is FieldAreaAction.REQUIRED_FIRST_PASSIVE_SKILL_PROCESS:
             print(f"{Fore.RED}패시브 처리가 필요합니다!{Style.RESET_ALL}")
 
-            # {"protocolNumber":2002, "unitCardIndex": "0", "usageSkillIndex": "1", "sessionInfo":""}
-            # session = self.__session_repository.get_session_info()
-            recently_added_card_index = self.field_area_inside_handler.get_recently_added_card_index()
-            process_first_passive_skill_response = self.__fake_battle_field_frame_repository.request_to_process_first_passive_skill(
-                WideAreaPassiveSkillFromDeployRequest(
-                    _sessionInfo=self.__session_repository.get_session_info(),
-                    _unitCardIndex=str(recently_added_card_index),
-                    _usageSkillIndex="1"))
+            def first_passive_skill():
+                # {"protocolNumber":2002, "unitCardIndex": "0", "usageSkillIndex": "1", "sessionInfo":""}
+                # session = self.__session_repository.get_session_info()
+                recently_added_card_index = self.field_area_inside_handler.get_recently_added_card_index()
+                process_first_passive_skill_response = self.__fake_battle_field_frame_repository.request_to_process_first_passive_skill(
+                    WideAreaPassiveSkillFromDeployRequest(
+                        _sessionInfo=self.__session_repository.get_session_info(),
+                        _unitCardIndex=str(recently_added_card_index),
+                        _usageSkillIndex="1"))
 
-            # {"is_success":true,
-            # "player_field_unit_health_point_map":{"Opponent":{"field_unit_health_point_map":{"1":10,"0":10}}},
-            # "player_field_unit_harmful_effect_map":{"Opponent":{"field_unit_harmful_status_map":{"0":{"harmful_status_list":[]},"1":{"harmful_status_list":[]}}}},"player_field_unit_death_map":{"Opponent":{"dead_field_unit_index_list":[]}}}
-            print(
-                f"{Fore.RED}process_first_passive_skill_response:{Fore.GREEN} {process_first_passive_skill_response}{Style.RESET_ALL}")
+                # {"is_success":true,
+                # "player_field_unit_health_point_map":{"Opponent":{"field_unit_health_point_map":{"1":10,"0":10}}},
+                # "player_field_unit_harmful_effect_map":{"Opponent":{"field_unit_harmful_status_map":{"0":{"harmful_status_list":[]},"1":{"harmful_status_list":[]}}}},"player_field_unit_death_map":{"Opponent":{"dead_field_unit_index_list":[]}}}
+                print(
+                    f"{Fore.RED}process_first_passive_skill_response:{Fore.GREEN} {process_first_passive_skill_response}{Style.RESET_ALL}")
 
-            is_success = process_first_passive_skill_response['is_success']
-            if is_success is False:
-                return FieldAreaAction.Dummy
+                is_success = process_first_passive_skill_response['is_success']
+                if is_success is False:
+                    return FieldAreaAction.Dummy
 
-            your_animation_actor = self.your_field_unit_repository.find_field_unit_by_index(recently_added_card_index)
-            self.attack_animation_object.set_animation_actor(your_animation_actor)
-            self.field_area_inside_handler.set_field_area_action(FieldAreaAction.PLAY_ANIMATION)
+                your_animation_actor = self.your_field_unit_repository.find_field_unit_by_index(recently_added_card_index)
+                self.attack_animation_object.set_animation_actor(your_animation_actor)
+                self.field_area_inside_handler.set_field_area_action(FieldAreaAction.PLAY_ANIMATION)
 
-            damage = self.card_info_repository.getCardPassiveFirstDamageForCardNumber(
-                your_animation_actor.get_card_number())
-            self.attack_animation_object.set_animation_actor_damage(damage)
+                damage = self.card_info_repository.getCardPassiveFirstDamageForCardNumber(
+                    your_animation_actor.get_card_number())
+                self.attack_animation_object.set_animation_actor_damage(damage)
 
-            extra_ability = self.your_field_unit_repository.get_your_unit_extra_ability_at_index(
-                recently_added_card_index)
-            self.attack_animation_object.set_extra_ability(extra_ability)
+                extra_ability = self.your_field_unit_repository.get_your_unit_extra_ability_at_index(
+                    recently_added_card_index)
+                self.attack_animation_object.set_extra_ability(extra_ability)
 
-            if self.field_area_inside_handler.get_unit_action() is UnitAction.NETHER_BLADE_FIRST_WIDE_AREA_PASSIVE_SKILL:
-                self.master.after(0, self.nether_blade_first_passive_skill_animation)
+                if self.field_area_inside_handler.get_unit_action() is UnitAction.NETHER_BLADE_FIRST_WIDE_AREA_PASSIVE_SKILL:
+                    self.master.after(0, self.nether_blade_first_passive_skill_animation)
 
-            self.attack_animation_object.set_animation_action(AnimationAction.DUMMY)
-            # self.field_area_inside_handler.clear_field_area_action()
+                self.attack_animation_object.set_animation_action(AnimationAction.DUMMY)
+                # self.field_area_inside_handler.clear_field_area_action()
+            self.master.after(2000, first_passive_skill)
+            self.field_area_inside_handler.set_field_area_action(FieldAreaAction.Dummy)
 
         if self.opponent_field_area_inside_handler.get_field_area_action() is OpponentFieldAreaActionProcess.REQUIRE_TO_PROCESS_PASSIVE_SKILL_PROCESS:
             print(f"{Fore.RED}Opponent Unit 패시브 처리가 필요합니다!{Style.RESET_ALL}")
@@ -2068,7 +2072,9 @@ class BattleFieldFrame(OpenGLFrame):
         #         self.battle_result_panel_list[0].draw()
 
         if len(self.battle_result_panel_list) != 0:
-            if self.field_area_inside_handler.get_field_area_action() == None and self.opponent_field_area_inside_handler.get_field_area_action() == None:
+
+            if self.field_area_inside_handler.get_field_area_action() == FieldAreaAction.Dummy or self.opponent_field_area_inside_handler.get_field_area_action() == OpponentFieldAreaActionProcess.Dummy or (
+                    self.field_area_inside_handler.get_field_area_action() == None and self.opponent_field_area_inside_handler.get_field_area_action() == None):
 
                 for battle_result_panel in self.battle_result_panel_list:
                     battle_result_panel.set_width_ratio(self.width_ratio)
@@ -2277,11 +2283,16 @@ class BattleFieldFrame(OpenGLFrame):
 
                                 self.your_tomb_repository.create_tomb_card(your_card_id)
 
+                                print(f"selected_object : {self.selected_object}")
+
+
                                 # your_card_index = self.your_hand_repository.find_index_by_selected_object(self.selected_object)
                                 # self.your_hand_repository.remove_card_by_index(your_card_index)
                                 your_card_index = self.your_hand_repository.find_index_by_selected_object_with_page(
                                     self.selected_object)
+                                print(f"your_card_index : {your_card_index}")
                                 self.your_hand_repository.remove_card_by_index_with_page(your_card_index)
+
 
                                 # self.your_hand_repository.replace_hand_card_position()
                                 self.your_hand_repository.update_your_hand()
@@ -2292,6 +2303,8 @@ class BattleFieldFrame(OpenGLFrame):
                             self.create_effect_animation_to_opponent_field_and_play_animation_and_call_function_with_param(
                                 'field_of_death', field_of_death, None
                             )
+
+                        return
 
             # Opponent Field Area 끝
 
@@ -2597,6 +2610,7 @@ class BattleFieldFrame(OpenGLFrame):
                 self.return_to_initial_location()
                 self.reset_every_selected_action()
                 self.message_on_the_screen.create_message_on_the_battle_screen(drop_action_result)
+                # self.selected_object = None
             elif drop_action_result is None or drop_action_result is FieldAreaAction.Dummy:
                 print("self.field_area_inside_handler.get_field_area_action() = None")
                 self.return_to_initial_location()
@@ -2606,6 +2620,14 @@ class BattleFieldFrame(OpenGLFrame):
                 self.return_to_initial_location()
                 self.field_area_inside_handler.set_placed_card_page(
                     self.your_hand_repository.get_current_your_hand_page())
+            elif drop_action_result is FieldAreaAction.PLACE_UNIT:
+                self.field_area_inside_handler.clear_field_area_action()
+                self.selected_object = None
+            elif drop_action_result is FieldAreaAction.DRAW_DECK:
+                self.field_area_inside_handler.clear_field_area_action()
+                self.selected_object = None
+            elif drop_action_result is FieldAreaAction.REQUIRED_FIRST_PASSIVE_SKILL_PROCESS:
+                self.selected_object = None
             else:
                 print("self.field_area_inside_handler.get_field_area_action() = Some Action")
                 # self.selected_object = None
@@ -2613,14 +2635,7 @@ class BattleFieldFrame(OpenGLFrame):
                 self.field_area_inside_handler.set_placed_card_page(
                     self.your_hand_repository.get_current_your_hand_page())
                 print(f"추정된 필드 액션 : {self.field_area_inside_handler.get_field_area_action()}")
-                if drop_action_result is FieldAreaAction.PLACE_UNIT:
-                    self.field_area_inside_handler.clear_field_area_action()
-                    self.selected_object = None
-                if drop_action_result is FieldAreaAction.DRAW_DECK:
-                    self.field_area_inside_handler.clear_field_area_action()
-                    self.selected_object = None
-                if drop_action_result is FieldAreaAction.REQUIRED_FIRST_PASSIVE_SKILL_PROCESS:
-                    self.selected_object = None
+
                 # 서포트 관련하여 시작 포인트
                 # handler에서 id 와 index를 받아서 저장 해놓고
                 # false가 떳을 경우의 함수를 추가하여 return값으로 selection_object를 주는 함수를 만든다.
@@ -10365,6 +10380,7 @@ class BattleFieldFrame(OpenGLFrame):
 
                 if your_character_survival_state != 'Survival':
                     print('죽었습니다!!')
+                    self.your_hp_repository.your_character_die()
                     self.timer.stop_timer()
                     self.battle_field_repository.lose()
 
@@ -11118,6 +11134,11 @@ class BattleFieldFrame(OpenGLFrame):
                 # opponent_damage = attack_animation_object.get_opponent_animation_actor_damage()
                 health_point = notify_data['player_main_character_health_point_map']['You']
                 self.your_hp_repository.change_hp(int(health_point))
+
+                survival_info = notify_data['player_main_character_survival_map']['You']
+
+                if survival_info == "Death":
+                    self.your_hp_repository.your_character_die()
                 if self.your_hp_repository.get_your_character_survival_info() == SurvivalType.DEATH:
                     self.battle_field_repository.lose()
 
